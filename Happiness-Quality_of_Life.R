@@ -38,3 +38,5 @@ remove(Score_cat)
 summary(data)
 data$Region <- factor(data$Region)
 data$Score_cat <- factor(data$Score_cat, levels= c("Low", "Middle", "High")) 
+
+###check updated
