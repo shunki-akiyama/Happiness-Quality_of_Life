@@ -67,6 +67,7 @@ summary(data)
 
 
 
+
 ####changing data types####
 summary(data)
 data$Region <- factor(data$Region)
