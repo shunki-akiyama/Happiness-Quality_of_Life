@@ -63,9 +63,86 @@ data <- data[complete.cases(data),]
 summary(data)
 
 
-####Merge Quality of Life by city###
+#### Merge Quality of Life by city ####
+# open the file
+data_qul_city <- read.csv("uaScoresDataFrame.csv", header=T)
+newcountry <- read.csv("newcountryname.csv", header=T)
+colnames(data_qul_city)
+colnames(newcountry)
+summary(newqualreport)
+head(newqualreport)
+
+# change the column name
+names(newcountry)[names(newcountry) == "ï..UA_newcountry"] <- "UA_newcountry"
+colnames(newcountry)
 
 
+# Combine new country name with the Quality of life by city report ####
+# because the country's name in the data_qul_city is not match with other reports 
+# as they contain space, state name(instead of country)
+
+data_qul_city2 <- data.frame(data_qul_city,newcountry)
+colnames(data_qul_city2)
+
+# remove column 1,3 (X rage and UA_Country)
+data_qul_city2 <- data_qul_city2[,-c(1,3)] 
+colnames(data_qul_city2)
+
+# change the column name
+data_qul_city2 <- rename(data_qul_city2, "City"="UA_Name",
+                         "Cost"="Cost.of.Living",
+                         "Travel"="Travel.Connectivity",
+                         "Leisure.Culture"="Leisure...Culture", 
+                         "Internet"="Internet.Access",
+                         "Environment"="Environmental.Quality")
+
+# add "city" at the end of the column in the Quality of life by city
+colnames(data_qul_city2) <- paste(colnames(data_qul_city2), "city", sep = "_")
+
+# reorder columns
+data_qul_city2 <- data_qul_city2[, c(1, 2, 20, 3, 4,
+                                     5,6,7,8,9,10,11,12,13,14,15,16,17,18,19)]
+colnames(data_qul_city2)
+
+# average the amount in the quality of life by city
+data_qul_city3 <- data_qul_city2
+data_qul_city3 <- aggregate(cbind(Housing_city,Cost_city,Startups_city,
+                                  Venture.Capital_city,Travel_city,Commute_city,
+                                  Business.Freedom_city,Safety_city,
+                                  Healthcare_city,Education_city,Environment_city,
+                                  Economy_city,Taxation_city,Internet_city,
+                                  Leisure.Culture_city,Tolerance_city,
+                                  Outdoors_city)~ UA_newcountry_city, 
+                            data=data_qul_city2,FUN = mean)
+
+colnames(data_qul_city3)
+summary(data_qul_city3)
+remove(data_qul_city)
+remove(data_qul_city2)
+remove(data_qul_city3)
+
+# check merge result
+testdata <- data
+colnames(testdata)
+
+testdata <- left_join(testdata,data_qul_city3, 
+                      by=c("Country name"="UA_newcountry_city"))
+colnames(testdata)
+summary(testdata)
+remove(testdata)
+
+# merge 'Quality by city' to 'Data'
+data <- left_join(data,data_qul_city3, 
+                  by=c("Country name"="UA_newcountry_city"))
+summary(data)
+data$`Country name`[is.na(data$Outdoors_city)]  #there are 58 NA observations
+
+#delete NA observations (147-58 = 89 observations remain)
+data <- data[complete.cases(data),]
+summary(data)
+
+# check the output excel
+write.csv(data,file="testdata1.csv", row.names = F)
 
 
 ####changing data types####
