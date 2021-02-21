@@ -2,9 +2,9 @@
 Dataset Description:
 
 1. Suicide Rate
-   Source https://worldpopulationreview.com/country-rankings/suicide-rate-by-country
-   Year: 2021
-   Number of Countries: 183
+   - Source https://worldpopulationreview.com/country-rankings/suicide-rate-by-country
+   - Year: 2021
+   - Number of Countries: 183
   
 2. Quality of life
    Source https://www.worlddata.info/cost-of-living.php
