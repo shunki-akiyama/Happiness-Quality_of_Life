@@ -23,8 +23,10 @@ Dataset Description:
    - Number of Cities: 266
 
 
+
 Cleaning data:
-In Excel
+
+1).In Excel 
 Problem in file
 1. Country name in "Quality of life by city" has state names instead of United States
    To change all state name to be United State. The alldata and newcountryname excel file have been created.
@@ -32,7 +34,8 @@ Problem in file
    2.Use formula in the excel to correct country name (Sheet: Clean country) [In the slide shows excel from "alldata"]
    3.Then save new file as "newcountryname". [In the slide show excel from "newcountryname"]
 
-In R
+
+2).In R
 1.Happiness score > 1.Change colummn's name (easier to read)
                     2.Create new cateforical variable (High/Medium/Low)
                  
