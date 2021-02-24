@@ -3,13 +3,16 @@
 # Subject:
 # 1.Cleaning data and Merge 4 files
 # 2.Summary data
-# 3.Correlation Matrix
-# 4.Multivariate Regression
+# 3.Multivariate Regression
+# 4.Correlation Matrix
 
 library(dplyr)
 library(readxl)
 library(tools)
 library(corrplot)
+library(RColorBrewer)
+library(rcompanion)
+
 
 ##### 1) Cleaning data #####
 # There are 4 files merging; 1.Happiness score          2.Quality of life(by country), 
@@ -111,7 +114,7 @@ summary(data_qul_city)
 head(data_qul_city)
 
 # change the column name
-names(newcountry)[names(newcountry) == "ï..UA_newcountry"] <- "UA_newcountry"
+names(newcountry)[names(newcountry) == "?..UA_newcountry"] <- "UA_newcountry"
 colnames(newcountry)
 
 
@@ -253,8 +256,6 @@ data$Score_cat <- factor(data$Score_cat, levels= c("Low", "Middle", "High"))
 
 str(data)
 summary(data)
-install.packages("RColorBrewer")
-library(RColorBrewer)
 
 ### 2.1 Box plot ###
 
@@ -285,5 +286,295 @@ text(x = xy, y = Region, label = Region, pos = 3,
 
 
 
-#### check correlation####
-cor(data[,c(3:9,11:35)])
+
+##### 3) Multivariate Regression #####
+### 3.1 We first manually test the models using different features ###
+names(data)
+
+# With all the variables without Score_cat
+model1<-lm(happiness ~ gdp + social + life_expectancy + freedom + generosity + 
+             perceptions + Stability_co + Rights_co + Health_co + 
+             Safety_co + Climate_co + Costs_co + Popularity_co + Housing_city +
+             Cost_city + Startups_city + Venture.Capital_city + Travel_city + 
+             Commute_city + Business.Freedom_city + Safety_city + Healthcare_city + 
+             Education_city + Environment_city + Economy_city + Taxation_city +
+             Internet_city + Leisure.Culture_city + Tolerance_city + Outdoors_city + suicide,
+           data = data)
+summary(model1)
+# RSE 0.3953 Multiple R-squared:  0.887,	Adjusted R-squared:  0.8256 
+
+
+# with variables gdp,life_expectancy, commute_city, safety_city, environment_city, Taxation,
+#  tolerance, suicide 
+model2<-lm(happiness ~ gdp + life_expectancy + Commute_city + Safety_city +  Environment_city + 
+             Taxation_city + Tolerance_city + suicide, data = data)
+summary(model2)
+# RSE 0.4926 Multiple R-squared:  0.7538,	Adjusted R-squared:  0.7292 
+
+
+# without Rights_co, Health_city, Score_cat due to the correlation between Healthcare_city
+# and Heath_co & life_expectancy over 0.9. Also Rights_co has many correlations with other
+# features 
+model3<-lm(happiness ~ gdp + social + life_expectancy + freedom + generosity + 
+             perceptions + Stability_co + Health_co + 
+             Safety_co + Climate_co + Costs_co + Popularity_co + Housing_city +
+             Cost_city + Startups_city + Venture.Capital_city + Travel_city + 
+             Commute_city + Business.Freedom_city + Safety_city + 
+             Education_city + Environment_city + Economy_city + Taxation_city +
+             Internet_city + Leisure.Culture_city + Tolerance_city + Outdoors_city + suicide,
+           data = data)
+summary(model3)
+# RSE 0.3942 Multiple R-squared:  0.8837,	Adjusted R-squared:  0.8266 
+
+
+# Without Rights_co, Healthcare_city, Score_cat
+# Without Health_co, Startups_city, Venture.Capital_city since their p > 0.85
+model4<-lm(happiness ~ gdp + social + life_expectancy + freedom + generosity + 
+             perceptions + Stability_co + 
+             Safety_co + Climate_co + Costs_co + Popularity_co + Housing_city +
+             Cost_city + Travel_city + 
+             Commute_city + Business.Freedom_city + Safety_city + 
+             Education_city + Environment_city + Economy_city + Taxation_city +
+             Internet_city + Leisure.Culture_city + Tolerance_city + Outdoors_city + suicide,
+           data = data)
+summary(model4)
+# RSE 0.3846 Multiple R-squared:  0.8837,	Adjusted R-squared:  0.8349 
+
+
+# Without Rights_co, Healthcare_city, Score_cat
+# Without Health_co, Startups_city, Venture.Capital_city since their p > 0.85
+# Without Economy_city since p > 0.85
+model5<-lm(happiness ~ gdp + social + life_expectancy + freedom + generosity + 
+             perceptions + Stability_co + 
+             Safety_co + Climate_co + Costs_co + Popularity_co + Housing_city +
+             Cost_city + Travel_city + 
+             Commute_city + Business.Freedom_city + Safety_city + 
+             Education_city + Environment_city + Taxation_city +
+             Internet_city + Leisure.Culture_city + Tolerance_city + Outdoors_city + suicide,
+           data = data)
+summary(model5)
+# RSE 0.3817 Multiple R-squared:  0.8836,	Adjusted R-squared:  0.8374 
+
+
+# Without Rights_co, Healthcare_city, Score_cat
+# Without Health_co, Startups_city, Venture.Capital_city since their p > 0.85
+# Without Economy_city since p > 0.85
+# Without Taxation since p >0.75
+model6<-lm(happiness ~ gdp + social + life_expectancy + freedom + generosity + 
+             perceptions + Stability_co + Safety_co + Climate_co + Costs_co + 
+             Popularity_co + Housing_city + Cost_city + Travel_city + Commute_city + 
+             Business.Freedom_city + Safety_city + Education_city + Environment_city +
+             Internet_city + Leisure.Culture_city + Tolerance_city + Outdoors_city + suicide,
+           data = data)
+summary(model6)
+# RSE 0.3789 Multiple R-squared:  0.8835,	Adjusted R-squared:  0.8398 
+
+
+# Without Rights_co, Healthcare_city, Score_cat
+# Without Health_co, Startups_city, Venture.Capital_city since their p > 0.85
+# Without Economy_city since p > 0.85
+# Without Taxation since p > 0.75
+# Without Commute_city since p > 0.75
+model7<-lm(happiness ~ gdp + social + life_expectancy + freedom + generosity + 
+             perceptions + Stability_co + Safety_co + Climate_co + Costs_co + 
+             Popularity_co + Housing_city + Cost_city + Travel_city + 
+             Business.Freedom_city + Safety_city + Education_city + Environment_city +
+             Internet_city + Leisure.Culture_city + Tolerance_city + Outdoors_city + suicide,
+           data = data)
+summary(model7)
+# RSE 0.3762 Multiple R-squared:  0.8833,	Adjusted R-squared:  0.842 
+
+
+# Without Rights_co, Healthcare_city, Score_cat
+# Without Health_co, Startups_city, Venture.Capital_city since their p > 0.85
+# Without Economy_city since p > 0.85
+# Without Taxation since p > 0.75
+# Without Commute_city since p > 0.75
+# Without Popularity_co since p > 0.68
+model8<-lm(happiness ~ gdp + social + life_expectancy + freedom + generosity + 
+             perceptions + Stability_co + Safety_co + Climate_co + Costs_co + 
+             Housing_city + Cost_city + Travel_city + Business.Freedom_city + 
+             Safety_city + Education_city + Environment_city + Internet_city + 
+             Leisure.Culture_city + Tolerance_city + Outdoors_city + suicide,
+           data = data)
+summary(model8)
+# RSE 0.3739 Multiple R-squared:  0.883,	Adjusted R-squared:  0.844 
+
+
+# Without Rights_co, Healthcare_city, Score_cat
+# Without Health_co, Startups_city, Venture.Capital_city since their p > 0.85
+# Without Economy_city since p > 0.85
+# Without Taxation since p > 0.75
+# Without Commute_city since p > 0.75
+# Without Popularity_co since p > 0.68
+# Without Environment_city since p > 0.65
+model9<-lm(happiness ~ gdp + social + life_expectancy + freedom + generosity + 
+             perceptions + Stability_co + Safety_co + Climate_co + Costs_co + 
+             Housing_city + Cost_city + Travel_city + Business.Freedom_city + 
+             Safety_city + Education_city + Internet_city + 
+             Leisure.Culture_city + Tolerance_city + Outdoors_city + suicide,
+           data = data)
+summary(model9)
+# RSE 0.3716 Multiple R-squared:  0.8827,	Adjusted R-squared:  0.8459 
+
+
+# Without Rights_co, Healthcare_city, Score_cat
+# Without Health_co, Startups_city, Venture.Capital_city since their p > 0.85
+# Without Economy_city since p > 0.85
+# Without Taxation since p > 0.75
+# Without Commute_city since p > 0.75
+# Without Popularity_co since p > 0.68
+# Without Environment_city since p > 0.65
+# Without Costs_co since p > 0.65
+model10<-lm(happiness ~ gdp + social + life_expectancy + freedom + generosity + 
+              perceptions + Stability_co + Safety_co + Climate_co + Costs_co + 
+              Housing_city + Travel_city + Business.Freedom_city + Safety_city + 
+              Education_city + Internet_city + Leisure.Culture_city + Tolerance_city +
+              Outdoors_city + suicide, data = data)
+summary(model10)
+# RSE 0.3765 Multiple R-squared:  0.8778,	Adjusted R-squared:  0.8418 
+
+
+### 3.2 Finding the best model using step function ###
+model.null = lm(happiness ~ 1, data=data)
+step(model.null, scope = list(upper=model1), direction="both", data=data) 
+#fit the model 
+model.step<-lm(happiness ~ social + freedom + life_expectancy + Safety_co + 
+                 generosity + gdp + Tolerance_city + Safety_city + Cost_city + 
+                 Climate_co + Business.Freedom_city, data = data)
+summary(model.step)
+# RSE 0.3639 Multiple R-squared:  0.8707,	Adjusted R-squared:  0.8522 
+
+
+### 3.3 Investigate model and features ###
+
+#adding Region to model.step improve the RSE and Ajusted R^2
+model.stepx1<-lm(happiness ~ social + freedom + life_expectancy + Safety_co + 
+                   generosity + gdp + Tolerance_city + Safety_city + Cost_city + 
+                   Climate_co + Business.Freedom_city + Region, data = data)
+summary(model.stepx1)
+# RSE 0.3552 Multiple R-squared:  0.8864,	Adjusted R-squared:  0.8592 
+
+#adding suicide improve the RSE and Ajusted R^2 by a little 
+model.stepx2<-lm(happiness ~ social + freedom + life_expectancy + Safety_co + 
+                  generosity + gdp + Tolerance_city + Safety_city + Cost_city + 
+                  Climate_co + Business.Freedom_city + suicide, data = data)
+summary(model.stepx2)
+# RSE 0.363 Multiple R-squared:  0.873,	Adjusted R-squared:  0.8529 
+
+#but adding Region and suicide isn't better than adding only region
+model.stepx3<-lm(happiness ~ social + freedom + life_expectancy + Safety_co + 
+                  generosity + gdp + Tolerance_city + Safety_city + Cost_city + 
+                  Climate_co + Business.Freedom_city +Region + suicide, data = data)
+summary(model.stepx3)
+# RSE 0.3576 Multiple R-squared:  0.8865,	Adjusted R-squared:  0.8573 
+
+#subtracting Business.Freedom_city from model.stepx1 improve the RSE and Ajusted R^2
+model.stepx4<-lm(happiness ~ social + freedom + life_expectancy + Safety_co + 
+                   generosity + gdp + Tolerance_city + Safety_city + Cost_city + 
+                   Climate_co + Region, data = data)
+summary(model.stepx4)
+# RSE 0.3545 Multiple R-squared:  0.8853,	Adjusted R-squared:  0.8598
+
+
+### 3.4 Comparing model performance ###
+compareLM(model1, model2, model3, model4, model5, model6,
+          model7, model8, model9, model10, model.step, 
+          model.stepx1, model.stepx2, model.stepx3, model.stepx4)
+model.final<-model.stepx4
+remove(model1, model2, model3, model4, model5, model6,
+       model7, model8, model9, model10, model.step, model.stepx, model.stepx1,
+       model.stepx2, model.stepx3, model.stepx4, model.null)
+
+#dropping either Safety_co or Safety_city will increase RSE 
+model_sa_co<-lm(happiness ~ social + freedom + life_expectancy + Safety_co + 
+                generosity + gdp + Tolerance_city + Cost_city + 
+                Climate_co + Region, data = data)
+summary(model_sa_co)
+# RSE 0.3595 Multiple R-squared:  0.8804,	Adjusted R-squared:  0.8558 (better)
+
+model_sa_ci<-lm(happiness ~ social + freedom + life_expectancy + 
+                 generosity + gdp + Tolerance_city + Safety_city + Cost_city + 
+                 Climate_co + Region, data = data)
+summary(model_sa_ci)
+# RSE 0.3597 Multiple R-squared:  0.8802,	Adjusted R-squared:  0.8556
+
+#switching to cost_co from cost_city increases RSE 
+model_less<-lm(happiness ~ social + freedom + life_expectancy + Safety_co + 
+                 generosity + gdp + Tolerance_city + Costs_co + Climate_co + 
+                 Region, data = data)
+summary(model_less)
+# RSE 0.3574 Multiple R-squared:  0.8817,	Adjusted R-squared:  0.8574
+
+remove(model_sa_co, model_sa_ci)
+
+
+
+
+##### 4) Correlation Matrix #####
+
+### 4.1 check final model
+# happiness ~ social + freedom + life_expectancy + Safety_co + generosity 
+# + gdp + Tolerance_city + Safety_city + Cost_city + Climate_co + Region
+
+names(data)
+cor(data[,c(3,5,7,6,14,8,4,33,25,19,15)])
+#                  happiness     social     freedom life_expectancy  Safety_co  generosity
+# happiness        1.0000000  0.7709149  0.51577690      0.71976790  0.3955936  0.27568968
+# social           0.7709149  1.0000000  0.30397570      0.58236183  0.2526772  0.13545723
+# freedom          0.5157769  0.3039757  1.00000000      0.17884169  0.2368033  0.40558318
+# life_expectancy  0.7197679  0.5823618  0.17884169      1.00000000  0.5984291  0.05184827
+# Safety_co        0.3955936  0.2526772  0.23680334      0.59842915  1.0000000  0.29371040
+# generosity       0.2756897  0.1354572  0.40558318      0.05184827  0.2937104  1.00000000
+# gdp              0.7255450  0.6265144  0.18964420      0.75984496  0.5862569  0.09068623
+# Tolerance_city   0.5825596  0.5186065  0.26323251      0.56427186  0.3467037  0.00100773
+# Safety_city      0.2370228  0.1893991  0.08922301      0.40979211  0.6019437  0.05609378
+# Cost_city       -0.6205714 -0.4746822 -0.43458475     -0.51178899 -0.3557078 -0.40345245
+# Climate_co      -0.4766846 -0.4799675 -0.25178090     -0.31480341 -0.3856727 -0.16951964
+#                         gdp Tolerance_city Safety_city  Cost_city Climate_co
+# happiness        0.72554502     0.58255958  0.23702276 -0.6205714 -0.4766846
+# social           0.62651440     0.51860650  0.18939907 -0.4746822 -0.4799675
+# freedom          0.18964420     0.26323251  0.08922301 -0.4345848 -0.2517809
+# life_expectancy  0.75984496     0.56427186  0.40979211 -0.5117890 -0.3148034
+# Safety_co        0.58625691     0.34670373  0.60194370 -0.3557078 -0.3856727
+# generosity       0.09068623     0.00100773  0.05609378 -0.4034524 -0.1695196
+# gdp              1.00000000     0.34272947  0.42016598 -0.4427836 -0.4485482
+# Tolerance_city   0.34272947     1.00000000  0.40443172 -0.3096572 -0.3235666
+# Safety_city      0.42016598     0.40443172  1.00000000 -0.2859966 -0.4350400
+# Cost_city       -0.44278363    -0.30965725 -0.28599657  1.0000000  0.2302806
+# Climate_co      -0.44854825    -0.32356660 -0.43504003  0.2302806  1.0000000
+
+# more than 0.60 
+# social vs gdp (0.63) / life_expectancy vs gdp (0.76) / Safety_co vs Safety_city (0.60)
+
+
+### 4.2 check less variables model
+# happiness ~ social + freedom + life_expectancy + Safety_co + 
+# generosity + gdp + Tolerance_city + Costs_co + Climate_co + Region
+
+cor(data[,c(3,5,7,6,14,8,4,33,16,15)])
+#                  happiness     social    freedom life_expectancy  Safety_co
+# happiness        1.0000000  0.7709149  0.5157769      0.71976790  0.3955936
+# social           0.7709149  1.0000000  0.3039757      0.58236183  0.2526772
+# freedom          0.5157769  0.3039757  1.0000000      0.17884169  0.2368033
+# life_expectancy  0.7197679  0.5823618  0.1788417      1.00000000  0.5984291
+# Safety_co        0.3955936  0.2526772  0.2368033      0.59842915  1.0000000
+# generosity       0.2756897  0.1354572  0.4055832      0.05184827  0.2937104
+# gdp              0.7255450  0.6265144  0.1896442      0.75984496  0.5862569
+# Tolerance_city   0.5825596  0.5186065  0.2632325      0.56427186  0.3467037
+# Costs_co        -0.5252890 -0.3070025 -0.2771449     -0.55510548 -0.2536313
+# Climate_co      -0.4766846 -0.4799675 -0.2517809     -0.31480341 -0.3856727
+#                  generosity         gdp Tolerance_city   Costs_co Climate_co
+# happiness        0.27568968  0.72554502     0.58255958 -0.5252890 -0.4766846
+# social           0.13545723  0.62651440     0.51860650 -0.3070025 -0.4799675
+# freedom          0.40558318  0.18964420     0.26323251 -0.2771449 -0.2517809
+# life_expectancy  0.05184827  0.75984496     0.56427186 -0.5551055 -0.3148034
+# Safety_co        0.29371040  0.58625691     0.34670373 -0.2536313 -0.3856727
+# generosity       1.00000000  0.09068623     0.00100773 -0.2209632 -0.1695196
+# gdp              0.09068623  1.00000000     0.34272947 -0.4109084 -0.4485482
+# Tolerance_city   0.00100773  0.34272947     1.00000000 -0.2237474 -0.3235666
+# Costs_co        -0.22096319 -0.41090839    -0.22374742  1.0000000  0.1393038
+# Climate_co      -0.16951964 -0.44854825    -0.32356660  0.1393038  1.0000000
+
+# more than 0.60 
+# social vs gdp (0.63) / life_expectancy vs gdp (0.76)
