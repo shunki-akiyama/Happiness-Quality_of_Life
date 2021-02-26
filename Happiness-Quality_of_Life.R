@@ -1,7 +1,7 @@
 #Happiness-Quality of life Group Project (Winter 2021)
 
 # Subject:
-# 1.Cleaning data and Merge 4 files
+# 1.Cleaning data and Merging 4 files
 # 2.Summary data
 # 3.Multivariate Regression
 # 4.Correlation Matrix
@@ -12,7 +12,7 @@ library(tools)
 library(corrplot)
 library(RColorBrewer)
 library(rcompanion)
-
+library(reshape2)
 
 ##### 1) Cleaning data #####
 # There are 4 files merging; 1.Happiness score          2.Quality of life(by country), 
@@ -104,7 +104,7 @@ summary(data)
 
 
 
-### 1.5 Clean the QUality of life by city ####
+### 1.5 Clean the Quality of life by city ####
 
 data_qul_city <- read.csv("uaScoresDataFrame.csv", header=T) # import the QUality of life by city
 newcountry <- read.csv("newcountryname.csv", header=T)
@@ -114,7 +114,7 @@ summary(data_qul_city)
 head(data_qul_city)
 
 # change the column name
-names(newcountry)[names(newcountry) == "?..UA_newcountry"] <- "UA_newcountry"
+names(newcountry)[names(newcountry) == "ï..UA_newcountry"] <- "UA_newcountry"
 colnames(newcountry)
 
 
@@ -123,7 +123,7 @@ colnames(newcountry)
 # as they contain; space, state names(instead of country)
 data_qul_city2 <- data.frame(data_qul_city,newcountry)
 colnames(data_qul_city2)
-remove(newcountry)
+
 
 # remove column 1,3 (X range and UA_Country)
 data_qul_city2 <- data_qul_city2[,-c(1,3)] 
@@ -156,11 +156,13 @@ data_qul_city3 <- aggregate(cbind(Housing_city,Cost_city,Startups_city,
                                   Leisure.Culture_city,Tolerance_city,
                                   Outdoors_city)~ UA_newcountry_city, 
                             data=data_qul_city2,FUN = mean)
+str(data)
 
 colnames(data_qul_city3)
 summary(data_qul_city3)
 remove(data_qul_city)
 remove(data_qul_city2)
+remove(newcountry)
 
 
 
@@ -260,6 +262,23 @@ summary(data)
 ### 2.1 Box plot ###
 
 # box plot: Overall (all variables)
+data_box_plot <- data                        # clone data to data_box_plot
+data_box_plot <- data_box_plot[,-c(1,2)]     # delete column Country name, Region to keep only numeric variables.
+head(data_box_plot)
+
+data_melt <- melt(data_box_plot)             # melt data to illustrate overall data
+head(data_melt)
+remove(data_box_plot)
+
+par(mar=c(7, 4, 2, 2))
+boxplot(value~variable, data=data_melt, ylim=c(0,32), xlab="",ylab="range",las=2,
+        main="All variables in Happiness-Quality of life", 
+        col = brewer.pal(n = 32, name = "Set3"), 
+        cex.axis=0.7)
+
+abline(v=1.6, col="chocolate4", lty=2)      # add line to separate the different range
+abline(v=7.4, col="chocolate4", lty=2)
+abline(v=31.5, col="chocolate4", lty=2)
 
 # box plot: Happiness by region
 par(mar=c(5, 4, 2, 2))
@@ -273,17 +292,40 @@ boxplot(happiness~Region, data=data, ylim=c(0,10), main="Happiness score by regi
 # bar plot: Level of happiness score
 score <- table(data$Score_cat)
 xx <- barplot(score, ylab = "Count", col = brewer.pal(n = 7, name = "Dark2"), 
-              main = "Level of happiness",xlab="", space=1, ylim=c(0,50)) 
+              main = "Level of happiness",xlab="", space=1, ylim=c(0,60)) 
 text(x = xx, y = score, label = score, pos = 3, 
      cex = 0.8, col = "#293352")
 
 # bar plot: count region
 Region <- table(data$Region)
 xy <- barplot(Region, ylab = "Count", col = brewer.pal(n = 7, name = "RdBu"), 
-              main = "Region",xlab="", space=1, ylim=c(0,40)) 
+              main = "Region",xlab="", space=1, ylim=c(0,60)) 
 text(x = xy, y = Region, label = Region, pos = 3, 
      cex = 0.8, col = "#293352")
 
+
+### 2.3 Density plot ###
+den1 <- density(data$happiness[data$Score_cat == "High"])
+den2 <- density(data$happiness[data$Score_cat == "Middle"])
+den3 <- density(data$happiness[data$Score_cat == "Low"])
+
+hist(data$happiness[data$Score_cat == "High"],
+     main = "Level of Happiness scores",
+     xlim=c(0,10), breaks = seq(0,10,1),col=rgb(1,0,0,0.15),
+     cex.axis = 0.8, freq = F, xlab = "Happiness", 
+     ylim=c(0,1.2))
+hist(data$happiness[data$Score_cat == "Middle"],
+     xlim=c(0,10), breaks = seq(0,10,1),col=rgb(0,1,0,0.15),
+     cex.axis = 0.8, freq = F, add=T)
+hist(data$happiness[data$Score_cat == "Low"],
+     xlim=c(0,10), breaks = seq(0,10,1),col=rgb(0,0,1,0.15),
+     cex.axis = 0.8, freq = F, add=T)
+
+legend("topright", c("High", "Middle", "Low"), col=c(rgb(1,0,0,0.15),rgb(0,1,0,0.15),rgb(0,0,1,0.15)), lwd=10)
+
+lines(den1, lwd = 2, col = "lightpink4", lty = 1)
+lines(den2, lwd = 2, col = "darkseagreen4", lty = 1)
+lines(den3, lwd = 2, col = "blue", lty = 1)
 
 
 
