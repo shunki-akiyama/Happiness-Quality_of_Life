@@ -114,7 +114,7 @@ summary(data_qul_city)
 head(data_qul_city)
 
 # change the column name
-names(newcountry)[names(newcountry) == "ï..UA_newcountry"] <- "UA_newcountry"
+names(newcountry)[names(newcountry) == "Ã¯..UA_newcountry"] <- "UA_newcountry"
 colnames(newcountry)
 
 
@@ -490,7 +490,8 @@ summary(model.step)
 
 ### 3.3 Investigate model and features ###
 
-#adding Region to model.step improve the RSE and Ajusted R^2
+#adding Region to model.step improve the RSE and Ajusted R^2 by 1%, but most region 
+# other than Asia have p-value >0.05, not significant. drop region. 
 model.stepx1<-lm(happiness ~ social + freedom + life_expectancy + Safety_co + 
                    generosity + gdp + Tolerance_city + Safety_city + Cost_city + 
                    Climate_co + Business.Freedom_city + Region, data = data)
@@ -512,9 +513,10 @@ summary(model.stepx3)
 # RSE 0.3576 Multiple R-squared:  0.8865,	Adjusted R-squared:  0.8573 
 
 #subtracting Business.Freedom_city from model.stepx1 improve the RSE and Ajusted R^2
+#this is our final model 
 model.stepx4<-lm(happiness ~ social + freedom + life_expectancy + Safety_co + 
                    generosity + gdp + Tolerance_city + Safety_city + Cost_city + 
-                   Climate_co + Region, data = data)
+                   Climate_co, data = data)
 summary(model.stepx4)
 # RSE 0.3545 Multiple R-squared:  0.8853,	Adjusted R-squared:  0.8598
 
@@ -528,7 +530,8 @@ remove(model1, model2, model3, model4, model5, model6,
        model7, model8, model9, model10, model.step, model.stepx, model.stepx1,
        model.stepx2, model.stepx3, model.stepx4, model.null)
 
-#dropping either Safety_co or Safety_city will increase RSE 
+#dropping either Safety_co or Safety_city will increase RSE, we will combine both 
+# variables later in future step 
 model_sa_co<-lm(happiness ~ social + freedom + life_expectancy + Safety_co + 
                 generosity + gdp + Tolerance_city + Cost_city + 
                 Climate_co + Region, data = data)
