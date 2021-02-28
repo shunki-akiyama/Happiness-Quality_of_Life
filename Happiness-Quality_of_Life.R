@@ -13,6 +13,8 @@ library(corrplot)
 library(RColorBrewer)
 library(rcompanion)
 library(reshape2)
+library(tmap)
+library(spData)
 
 ##### 1) Cleaning data #####
 # There are 4 files merging; 1.Happiness score          2.Quality of life(by country), 
@@ -281,10 +283,10 @@ abline(v=7.4, col="chocolate4", lty=2)
 abline(v=31.5, col="chocolate4", lty=2)
 
 # box plot: Happiness by region
-par(mar=c(5, 4, 2, 2))
-boxplot(happiness~Region, data=data, ylim=c(0,10), main="Happiness score by region", 
+par(mar=c(8, 4, 2, 2))
+boxplot(happiness~Region, data=data, main="Happiness score by region", 
         xlab="", ylab="Happiness score",las=2, col = brewer.pal(n = 7, name = "RdBu"), 
-        cex.axis=0.6)
+        cex.axis=1.0)
 
 
 ### 2.2 Bar plot ###
@@ -326,6 +328,56 @@ legend("topright", c("High", "Middle", "Low"), col=c(rgb(1,0,0,0.15),rgb(0,1,0,0
 lines(den1, lwd = 2, col = "lightpink4", lty = 1)
 lines(den2, lwd = 2, col = "darkseagreen4", lty = 1)
 lines(den3, lwd = 2, col = "blue", lty = 1)
+
+
+### 2.4 Maps ###
+#Check merging data
+world1 <- left_join(data, world, by = c("Country name" = "name_long"))
+world1$`Country name`[is.na(world1$continent)]
+# [1] "Malta"       "Singapore"   "South Korea" "Russia"   
+
+data_tempo <- data
+sort(world$name_long)
+data_tempo$`Country name`[data_tempo$`Country name`=="South Korea"] <- "Republic of Korea"
+data_tempo$`Country name`[data_tempo$`Country name`=="Russia"] <- "Russian Federation"
+
+#Marge dataset for map
+world1 <- left_join(world,data_tempo, by = c("name_long" = "Country name"))
+world1$name_long[!is.na(world1$happiness)]
+#remove Malta & Singapore due to not existing
+tm_shape(world1) + tm_fill("happiness") + 
+        tm_layout(main.title="                                     Happiness score map") 
+
+
+### 2.5 Scatter plots ###
+#Single regression model with the highest correlation variable (social) 
+m_single <- lm(happiness ~ social, data=data)
+summary(m_single)
+# RSE 0.6064 Multiple R-squared:  0.5943,	Adjusted R-squared:  0.5896 
+plot(m_single)
+
+#scatter plot
+plot(data$social[data$Region=="Africa"], 
+     data$happines[data$Region=="Africa"], ylim=c(3,8),xlim=c(0.6,1.6), pch=16,
+     xlab="Social (point)",ylab="Happiness Score (point)",main="Happiness vs Social by Region",col="red")
+
+points(data$social[data$Region=="Asia"],
+       data$happines[data$Region=="Asia"],col="orange",pch=16)
+points(data$social[data$Region=="Caribbean"],
+       data$happines[data$Region=="Caribbean"],col="darksalmon",pch=16)
+points(data$social[data$Region=="CIS"], 
+       data$happines[data$Region=="CIS"],col="gainsboro",pch=16)
+points(data$social[data$Region=="Europe"], 
+       data$happines[data$Region=="Europe"],col="skyblue",pch=16)
+points(data$social[data$Region=="North America"], 
+       data$happines[data$Region=="North America"],col="dodgerblue",pch=16)
+points(data$social[data$Region=="Oceania"], 
+       data$happines[data$Region=="Oceania"],col="dodgerblue4",pch=16)
+
+legend("topleft", c("Africa","Asia","Caribbean","CIS","Europe North America","Oceania"), 
+       col = c("red", "orange","darksalmon","gainsboro","skyblue","dodgerblue", "dodgerblue4"),lwd=10)
+abline(m_single, lwd = 2, lty = 2)
+
 
 
 
