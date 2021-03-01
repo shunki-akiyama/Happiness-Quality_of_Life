@@ -116,7 +116,7 @@ summary(data_qul_city)
 head(data_qul_city)
 
 # change the column name
-names(newcountry)[names(newcountry) == "Ã¯..UA_newcountry"] <- "UA_newcountry"
+names(newcountry)[names(newcountry) == "ï..UA_newcountry"] <- "UA_newcountry"
 colnames(newcountry)
 
 
@@ -143,8 +143,7 @@ data_qul_city2 <- rename(data_qul_city2, "City"="UA_Name",
 colnames(data_qul_city2) <- paste(colnames(data_qul_city2), "city", sep = "_")
 
 # reorder columns (move country to left column)
-data_qul_city2 <- data_qul_city2[, c(1, 2, 20, 3, 4,
-                                     5,6,7,8,9,10,11,12,13,14,15,16,17,18,19)]
+data_qul_city2 <- data_qul_city2[, c(1, 2, 20, 3:19)]
 colnames(data_qul_city2)
 
 # sum up quality of city and convert to be country by using average amount
@@ -256,6 +255,7 @@ data$Score_cat <- factor(data$Score_cat, levels= c("Low", "Middle", "High"))
 
 
 
+
 ##### 2) summary data #####
 
 str(data)
@@ -273,38 +273,50 @@ head(data_melt)
 remove(data_box_plot)
 
 par(mar=c(7, 4, 2, 2))
-boxplot(value~variable, data=data_melt, ylim=c(0,32), xlab="",ylab="range",las=2,
+boxplot(value~variable, data=data_melt, ylim=c(0,32), xlab="",ylab="score",las=2,
         main="All variables in Happiness-Quality of life", 
         col = brewer.pal(n = 32, name = "Set3"), 
         cex.axis=0.7)
 
-abline(v=1.6, col="chocolate4", lty=2)      # add line to separate the different range
+# add vertical line to separate report
+abline(v=1.6, col="chocolate4", lty=2)
 abline(v=7.4, col="chocolate4", lty=2)
+abline(v=14.5, col="chocolate4", lty=2)
 abline(v=31.5, col="chocolate4", lty=2)
 
-# box plot: Happiness by region
-par(mar=c(8, 4, 2, 2))
-boxplot(happiness~Region, data=data, main="Happiness score by region", 
-        xlab="", ylab="Happiness score",las=2, col = brewer.pal(n = 7, name = "RdBu"), 
-        cex.axis=1.0)
 
+# box plot: Level of happiness
+boxplot(happiness~Score_cat, data=data, ylim=c(0,10), main="Happiness score by region", 
+        xlab="", ylab="Level", col=c(rgb(0,0,1,0.15),rgb(0,1,0,0.15),rgb(1,0,0,0.15)), 
+        cex.axis=1)
+
+# box plot: Happiness by region
+par(mar=c(7, 4, 2, 2))
+boxplot(happiness~Region, data=data, ylim=c(0,10), main="Happiness score", 
+        xlab="", ylab="Happiness score",las=2, col = brewer.pal(n = 7, name = "RdBu"), 
+        cex.axis=1)
+
+# box plot: Suicide rate by region
+boxplot(suicide~Region, data=data, ylim=c(0,32), main="Suicide by region", 
+        xlab="", ylab="per 100k", col = brewer.pal(n = 7, name = "RdBu"), 
+        cex.axis=1, las=2)
+
+remove(data_melt)
 
 ### 2.2 Bar plot ###
 
-# bar plot: Level of happiness score
-score <- table(data$Score_cat)
-xx <- barplot(score, ylab = "Count", col = brewer.pal(n = 7, name = "Dark2"), 
-              main = "Level of happiness",xlab="", space=1, ylim=c(0,60)) 
-text(x = xx, y = score, label = score, pos = 3, 
+# bar plot: count region (separated by level)
+region_Hap <- table(data$Score_cat, data$Region)
+par(mar=c(7, 4, 2, 2))
+xy = barplot(region_Hap, ylab = "Count", main = "Count by region and level of happiness", xlab="",
+             col = c("mediumpurple1","darkseagreen2","pink"), ylim=c(0,60), beside=T, las=2)
+legend("topright", c("High 44","Middle 32","Low 13"), 
+       text.col=c("pink","darkseagreen2","mediumpurple1"))
+text(x = xy, y = region_Hap, label = region_Hap, pos = 3, 
      cex = 0.8, col = "#293352")
 
-# bar plot: count region
-Region <- table(data$Region)
-xy <- barplot(Region, ylab = "Count", col = brewer.pal(n = 7, name = "RdBu"), 
-              main = "Region",xlab="", space=1, ylim=c(0,60)) 
-text(x = xy, y = Region, label = Region, pos = 3, 
-     cex = 0.8, col = "#293352")
-
+remove(xy)
+remove(region_Hap)
 
 ### 2.3 Density plot ###
 den1 <- density(data$happiness[data$Score_cat == "High"])
@@ -323,12 +335,16 @@ hist(data$happiness[data$Score_cat == "Low"],
      xlim=c(0,10), breaks = seq(0,10,1),col=rgb(0,0,1,0.15),
      cex.axis = 0.8, freq = F, add=T)
 
-legend("topright", c("High", "Middle", "Low"), col=c(rgb(1,0,0,0.15),rgb(0,1,0,0.15),rgb(0,0,1,0.15)), lwd=10)
+legend("topright", c("High", "Middle", "Low"), 
+       col=c(rgb(1,0,0,0.15),rgb(0,1,0,0.15),rgb(0,0,1,0.15)), lwd=10)
 
 lines(den1, lwd = 2, col = "lightpink4", lty = 1)
 lines(den2, lwd = 2, col = "darkseagreen4", lty = 1)
 lines(den3, lwd = 2, col = "blue", lty = 1)
 
+remove(den1)
+remove(den2)
+remove(den3)
 
 ### 2.4 Maps ###
 #Check merging data
@@ -379,7 +395,10 @@ legend("topleft", c("Africa","Asia","Caribbean","CIS","Europe North America","Oc
 abline(m_single, lwd = 2, lty = 2)
 
 
-
+### 2.6 correlation Matrix ###
+str(data)
+correlation_matrix <- cor(data[,c(3:9,11:35)])
+write.csv(correlation_matrix,file="Matrix1.csv") # to check the value over 0.70
 
 ##### 3) Multivariate Regression #####
 ### 3.1 We first manually test the models using different features ###
@@ -387,12 +406,12 @@ names(data)
 
 # With all the variables without Score_cat
 model1<-lm(happiness ~ gdp + social + life_expectancy + freedom + generosity + 
-             perceptions + Stability_co + Rights_co + Health_co + 
-             Safety_co + Climate_co + Costs_co + Popularity_co + Housing_city +
-             Cost_city + Startups_city + Venture.Capital_city + Travel_city + 
-             Commute_city + Business.Freedom_city + Safety_city + Healthcare_city + 
-             Education_city + Environment_city + Economy_city + Taxation_city +
-             Internet_city + Leisure.Culture_city + Tolerance_city + Outdoors_city + suicide,
+                   perceptions + Stability_co + Rights_co + Health_co + 
+                   Safety_co + Climate_co + Costs_co + Popularity_co + Housing_city +
+                   Cost_city + Startups_city + Venture.Capital_city + Travel_city + 
+                   Commute_city + Business.Freedom_city + Safety_city + Healthcare_city + 
+                   Education_city + Environment_city + Economy_city + Taxation_city +
+                   Internet_city + Leisure.Culture_city + Tolerance_city + Outdoors_city + suicide,
            data = data)
 summary(model1)
 # RSE 0.3953 Multiple R-squared:  0.887,	Adjusted R-squared:  0.8256 
@@ -401,7 +420,7 @@ summary(model1)
 # with variables gdp,life_expectancy, commute_city, safety_city, environment_city, Taxation,
 #  tolerance, suicide 
 model2<-lm(happiness ~ gdp + life_expectancy + Commute_city + Safety_city +  Environment_city + 
-             Taxation_city + Tolerance_city + suicide, data = data)
+                   Taxation_city + Tolerance_city + suicide, data = data)
 summary(model2)
 # RSE 0.4926 Multiple R-squared:  0.7538,	Adjusted R-squared:  0.7292 
 
@@ -410,12 +429,12 @@ summary(model2)
 # and Heath_co & life_expectancy over 0.9. Also Rights_co has many correlations with other
 # features 
 model3<-lm(happiness ~ gdp + social + life_expectancy + freedom + generosity + 
-             perceptions + Stability_co + Health_co + 
-             Safety_co + Climate_co + Costs_co + Popularity_co + Housing_city +
-             Cost_city + Startups_city + Venture.Capital_city + Travel_city + 
-             Commute_city + Business.Freedom_city + Safety_city + 
-             Education_city + Environment_city + Economy_city + Taxation_city +
-             Internet_city + Leisure.Culture_city + Tolerance_city + Outdoors_city + suicide,
+                   perceptions + Stability_co + Health_co + 
+                   Safety_co + Climate_co + Costs_co + Popularity_co + Housing_city +
+                   Cost_city + Startups_city + Venture.Capital_city + Travel_city + 
+                   Commute_city + Business.Freedom_city + Safety_city + 
+                   Education_city + Environment_city + Economy_city + Taxation_city +
+                   Internet_city + Leisure.Culture_city + Tolerance_city + Outdoors_city + suicide,
            data = data)
 summary(model3)
 # RSE 0.3942 Multiple R-squared:  0.8837,	Adjusted R-squared:  0.8266 
@@ -424,12 +443,12 @@ summary(model3)
 # Without Rights_co, Healthcare_city, Score_cat
 # Without Health_co, Startups_city, Venture.Capital_city since their p > 0.85
 model4<-lm(happiness ~ gdp + social + life_expectancy + freedom + generosity + 
-             perceptions + Stability_co + 
-             Safety_co + Climate_co + Costs_co + Popularity_co + Housing_city +
-             Cost_city + Travel_city + 
-             Commute_city + Business.Freedom_city + Safety_city + 
-             Education_city + Environment_city + Economy_city + Taxation_city +
-             Internet_city + Leisure.Culture_city + Tolerance_city + Outdoors_city + suicide,
+                   perceptions + Stability_co + 
+                   Safety_co + Climate_co + Costs_co + Popularity_co + Housing_city +
+                   Cost_city + Travel_city + 
+                   Commute_city + Business.Freedom_city + Safety_city + 
+                   Education_city + Environment_city + Economy_city + Taxation_city +
+                   Internet_city + Leisure.Culture_city + Tolerance_city + Outdoors_city + suicide,
            data = data)
 summary(model4)
 # RSE 0.3846 Multiple R-squared:  0.8837,	Adjusted R-squared:  0.8349 
@@ -439,12 +458,12 @@ summary(model4)
 # Without Health_co, Startups_city, Venture.Capital_city since their p > 0.85
 # Without Economy_city since p > 0.85
 model5<-lm(happiness ~ gdp + social + life_expectancy + freedom + generosity + 
-             perceptions + Stability_co + 
-             Safety_co + Climate_co + Costs_co + Popularity_co + Housing_city +
-             Cost_city + Travel_city + 
-             Commute_city + Business.Freedom_city + Safety_city + 
-             Education_city + Environment_city + Taxation_city +
-             Internet_city + Leisure.Culture_city + Tolerance_city + Outdoors_city + suicide,
+                   perceptions + Stability_co + 
+                   Safety_co + Climate_co + Costs_co + Popularity_co + Housing_city +
+                   Cost_city + Travel_city + 
+                   Commute_city + Business.Freedom_city + Safety_city + 
+                   Education_city + Environment_city + Taxation_city +
+                   Internet_city + Leisure.Culture_city + Tolerance_city + Outdoors_city + suicide,
            data = data)
 summary(model5)
 # RSE 0.3817 Multiple R-squared:  0.8836,	Adjusted R-squared:  0.8374 
@@ -455,10 +474,10 @@ summary(model5)
 # Without Economy_city since p > 0.85
 # Without Taxation since p >0.75
 model6<-lm(happiness ~ gdp + social + life_expectancy + freedom + generosity + 
-             perceptions + Stability_co + Safety_co + Climate_co + Costs_co + 
-             Popularity_co + Housing_city + Cost_city + Travel_city + Commute_city + 
-             Business.Freedom_city + Safety_city + Education_city + Environment_city +
-             Internet_city + Leisure.Culture_city + Tolerance_city + Outdoors_city + suicide,
+                   perceptions + Stability_co + Safety_co + Climate_co + Costs_co + 
+                   Popularity_co + Housing_city + Cost_city + Travel_city + Commute_city + 
+                   Business.Freedom_city + Safety_city + Education_city + Environment_city +
+                   Internet_city + Leisure.Culture_city + Tolerance_city + Outdoors_city + suicide,
            data = data)
 summary(model6)
 # RSE 0.3789 Multiple R-squared:  0.8835,	Adjusted R-squared:  0.8398 
@@ -470,10 +489,10 @@ summary(model6)
 # Without Taxation since p > 0.75
 # Without Commute_city since p > 0.75
 model7<-lm(happiness ~ gdp + social + life_expectancy + freedom + generosity + 
-             perceptions + Stability_co + Safety_co + Climate_co + Costs_co + 
-             Popularity_co + Housing_city + Cost_city + Travel_city + 
-             Business.Freedom_city + Safety_city + Education_city + Environment_city +
-             Internet_city + Leisure.Culture_city + Tolerance_city + Outdoors_city + suicide,
+                   perceptions + Stability_co + Safety_co + Climate_co + Costs_co + 
+                   Popularity_co + Housing_city + Cost_city + Travel_city + 
+                   Business.Freedom_city + Safety_city + Education_city + Environment_city +
+                   Internet_city + Leisure.Culture_city + Tolerance_city + Outdoors_city + suicide,
            data = data)
 summary(model7)
 # RSE 0.3762 Multiple R-squared:  0.8833,	Adjusted R-squared:  0.842 
@@ -486,10 +505,10 @@ summary(model7)
 # Without Commute_city since p > 0.75
 # Without Popularity_co since p > 0.68
 model8<-lm(happiness ~ gdp + social + life_expectancy + freedom + generosity + 
-             perceptions + Stability_co + Safety_co + Climate_co + Costs_co + 
-             Housing_city + Cost_city + Travel_city + Business.Freedom_city + 
-             Safety_city + Education_city + Environment_city + Internet_city + 
-             Leisure.Culture_city + Tolerance_city + Outdoors_city + suicide,
+                   perceptions + Stability_co + Safety_co + Climate_co + Costs_co + 
+                   Housing_city + Cost_city + Travel_city + Business.Freedom_city + 
+                   Safety_city + Education_city + Environment_city + Internet_city + 
+                   Leisure.Culture_city + Tolerance_city + Outdoors_city + suicide,
            data = data)
 summary(model8)
 # RSE 0.3739 Multiple R-squared:  0.883,	Adjusted R-squared:  0.844 
@@ -503,10 +522,10 @@ summary(model8)
 # Without Popularity_co since p > 0.68
 # Without Environment_city since p > 0.65
 model9<-lm(happiness ~ gdp + social + life_expectancy + freedom + generosity + 
-             perceptions + Stability_co + Safety_co + Climate_co + Costs_co + 
-             Housing_city + Cost_city + Travel_city + Business.Freedom_city + 
-             Safety_city + Education_city + Internet_city + 
-             Leisure.Culture_city + Tolerance_city + Outdoors_city + suicide,
+                   perceptions + Stability_co + Safety_co + Climate_co + Costs_co + 
+                   Housing_city + Cost_city + Travel_city + Business.Freedom_city + 
+                   Safety_city + Education_city + Internet_city + 
+                   Leisure.Culture_city + Tolerance_city + Outdoors_city + suicide,
            data = data)
 summary(model9)
 # RSE 0.3716 Multiple R-squared:  0.8827,	Adjusted R-squared:  0.8459 
@@ -521,10 +540,10 @@ summary(model9)
 # Without Environment_city since p > 0.65
 # Without Costs_co since p > 0.65
 model10<-lm(happiness ~ gdp + social + life_expectancy + freedom + generosity + 
-              perceptions + Stability_co + Safety_co + Climate_co + Costs_co + 
-              Housing_city + Travel_city + Business.Freedom_city + Safety_city + 
-              Education_city + Internet_city + Leisure.Culture_city + Tolerance_city +
-              Outdoors_city + suicide, data = data)
+                    perceptions + Stability_co + Safety_co + Climate_co + Costs_co + 
+                    Housing_city + Travel_city + Business.Freedom_city + Safety_city + 
+                    Education_city + Internet_city + Leisure.Culture_city + Tolerance_city +
+                    Outdoors_city + suicide, data = data)
 summary(model10)
 # RSE 0.3765 Multiple R-squared:  0.8778,	Adjusted R-squared:  0.8418 
 
@@ -534,8 +553,8 @@ model.null = lm(happiness ~ 1, data=data)
 step(model.null, scope = list(upper=model1), direction="both", data=data) 
 #fit the model 
 model.step<-lm(happiness ~ social + freedom + life_expectancy + Safety_co + 
-                 generosity + gdp + Tolerance_city + Safety_city + Cost_city + 
-                 Climate_co + Business.Freedom_city, data = data)
+                       generosity + gdp + Tolerance_city + Safety_city + Cost_city + 
+                       Climate_co + Business.Freedom_city, data = data)
 summary(model.step)
 # RSE 0.3639 Multiple R-squared:  0.8707,	Adjusted R-squared:  0.8522 
 
@@ -545,30 +564,30 @@ summary(model.step)
 #adding Region to model.step improve the RSE and Ajusted R^2 by 1%, but most region 
 # other than Asia have p-value >0.05, not significant. drop region. 
 model.stepx1<-lm(happiness ~ social + freedom + life_expectancy + Safety_co + 
-                   generosity + gdp + Tolerance_city + Safety_city + Cost_city + 
-                   Climate_co + Business.Freedom_city + Region, data = data)
+                         generosity + gdp + Tolerance_city + Safety_city + Cost_city + 
+                         Climate_co + Business.Freedom_city + Region, data = data)
 summary(model.stepx1)
 # RSE 0.3552 Multiple R-squared:  0.8864,	Adjusted R-squared:  0.8592 
 
 #adding suicide improve the RSE and Ajusted R^2 by a little 
 model.stepx2<-lm(happiness ~ social + freedom + life_expectancy + Safety_co + 
-                  generosity + gdp + Tolerance_city + Safety_city + Cost_city + 
-                  Climate_co + Business.Freedom_city + suicide, data = data)
+                         generosity + gdp + Tolerance_city + Safety_city + Cost_city + 
+                         Climate_co + Business.Freedom_city + suicide, data = data)
 summary(model.stepx2)
 # RSE 0.363 Multiple R-squared:  0.873,	Adjusted R-squared:  0.8529 
 
 #but adding Region and suicide isn't better than adding only region
 model.stepx3<-lm(happiness ~ social + freedom + life_expectancy + Safety_co + 
-                  generosity + gdp + Tolerance_city + Safety_city + Cost_city + 
-                  Climate_co + Business.Freedom_city +Region + suicide, data = data)
+                         generosity + gdp + Tolerance_city + Safety_city + Cost_city + 
+                         Climate_co + Business.Freedom_city +Region + suicide, data = data)
 summary(model.stepx3)
 # RSE 0.3576 Multiple R-squared:  0.8865,	Adjusted R-squared:  0.8573 
 
 #subtracting Business.Freedom_city from model.stepx1 improve the RSE and Ajusted R^2
 #this is our final model 
 model.stepx4<-lm(happiness ~ social + freedom + life_expectancy + Safety_co + 
-                   generosity + gdp + Tolerance_city + Safety_city + Cost_city + 
-                   Climate_co, data = data)
+                         generosity + gdp + Tolerance_city + Safety_city + Cost_city + 
+                         Climate_co, data = data)
 summary(model.stepx4)
 # RSE 0.3545 Multiple R-squared:  0.8853,	Adjusted R-squared:  0.8598
 
@@ -585,21 +604,21 @@ remove(model1, model2, model3, model4, model5, model6,
 #dropping either Safety_co or Safety_city will increase RSE, we will combine both 
 # variables later in future step 
 model_sa_co<-lm(happiness ~ social + freedom + life_expectancy + Safety_co + 
-                generosity + gdp + Tolerance_city + Cost_city + 
-                Climate_co + Region, data = data)
+                        generosity + gdp + Tolerance_city + Cost_city + 
+                        Climate_co + Region, data = data)
 summary(model_sa_co)
 # RSE 0.3595 Multiple R-squared:  0.8804,	Adjusted R-squared:  0.8558 (better)
 
 model_sa_ci<-lm(happiness ~ social + freedom + life_expectancy + 
-                 generosity + gdp + Tolerance_city + Safety_city + Cost_city + 
-                 Climate_co + Region, data = data)
+                        generosity + gdp + Tolerance_city + Safety_city + Cost_city + 
+                        Climate_co + Region, data = data)
 summary(model_sa_ci)
 # RSE 0.3597 Multiple R-squared:  0.8802,	Adjusted R-squared:  0.8556
 
 #switching to cost_co from cost_city increases RSE 
 model_less<-lm(happiness ~ social + freedom + life_expectancy + Safety_co + 
-                 generosity + gdp + Tolerance_city + Costs_co + Climate_co + 
-                 Region, data = data)
+                       generosity + gdp + Tolerance_city + Costs_co + Climate_co + 
+                       Region, data = data)
 summary(model_less)
 # RSE 0.3574 Multiple R-squared:  0.8817,	Adjusted R-squared:  0.8574
 
