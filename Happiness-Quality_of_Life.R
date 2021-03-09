@@ -116,7 +116,7 @@ summary(data_qul_city)
 head(data_qul_city)
 
 # change the column name
-names(newcountry)[names(newcountry) == "ï..UA_newcountry"] <- "UA_newcountry"
+names(newcountry)[names(newcountry) == "Ã¯..UA_newcountry"] <- "UA_newcountry"
 colnames(newcountry)
 
 
@@ -694,3 +694,217 @@ cor(data[,c(3,5,7,6,14,8,4,33,16,15)])
 
 # more than 0.60 
 # social vs gdp (0.63) / life_expectancy vs gdp (0.76)
+
+#########           Multivariate regression        ###################
+#Compare models 
+
+# Step function generates our base model 
+model.step<-lm(happiness ~ social + freedom + life_expectancy + Safety_co + 
+                 generosity + gdp + Tolerance_city + Safety_city + Cost_city + 
+                 Climate_co + Business.Freedom_city, data = data)
+summary(model.step)
+
+# Dropping business freedom 
+model.dropb<-lm(happiness ~ social + freedom + life_expectancy + Safety_co + 
+                   generosity + gdp + Tolerance_city + Safety_city + Cost_city + 
+                   Climate_co, data = data)
+summary(model.dropb)
+par(mfrow = c(1,1))
+plot(model.dropb)
+
+# Adding both Region and suicide rate 
+model.addrr<-lm(happiness ~ social + freedom + life_expectancy + Safety_co + 
+                   generosity + gdp + Tolerance_city + Safety_city + Cost_city + 
+                   Climate_co + Region + suicide, data = data)
+summary(model.addrr)
+
+# Compare models 
+compareLM(model.step, model.dropb, model.addrr)
+
+### Check the distribution of suicide rate 
+################ Scatterplot for suicide vs happiness score by region  ###############################
+
+# fit the regression line with x as the suicide and y as the happiness score  
+regline <- lm(happiness~suicide, data=data)
+# output the coefficients of the regression equation
+regline$coefficients
+
+# use the plot for category: continent = Africa as the base of the scatterplot 
+plot(data$suicide[data$Region == "Africa"], data$happiness[data$Region == "Africa"],
+     main = "Suicide Rate vs. Happiness Score by Country", 
+     xlab = "Suicide Rate per 100k ppl", ylab = "Happiness Score", pch = 15, col = "firebrick2",
+     xlim = c(0,34), ylim = c(0,10))
+
+# add the scatter points by category: Region, differentiated by color and type 
+points(data$suicide[data$Region == "Asia"], data$happiness[data$Region == "Asia"],
+       pch = 16, col = "yellow")
+points(data$suicide[data$Region == "Europe"], data$happiness[data$Region == "Europe"],pch = 17, col = "yellowgreen")
+points(data$suicide[data$Region == "North America"], data$happiness[data$Region == "North America"],pch = 18, col = "purple")
+points(data$suicide[data$Region == "Oceania"], data$happiness[data$Region == "Oceania"],	pch = 7, col = "black")
+points(data$suicide[data$Region == "CIS"], data$happiness[data$Region == "CIS"],pch = 19, col = "deepskyblue1")
+points(data$suicide[data$Region == "Caribbean"], data$happiness[data$Region == "Caribbean"],pch = 11, col = "tan4")
+
+# add legend to the plot, adjust the size by cex =, used color map to pick the colors 
+#  that could help differentiate the data 
+legend("topright", c("Africa", "Asia", "Europe", "North America", "Oceania", "CIS", "Caribbean"), 
+       col = c("firebrick2", "yellow", "yellowgreen", "purple", "black", "deepskyblue1", "tan4"),
+       pch = c(15:18,7,19,11),cex = 0.7)
+
+# add linear regression line to the plot as required by item 3 
+abline(regline, col = "red", lty = 1, lwd = 1)
+abline(h=6, col = "black", lty = 1, lwd = 1)
+
+################################# End of scatterplot suicide ######################
+
+
+
+### Check the distribution of gdp  
+################ Scatterplot for gdp vs happiness score by region  ###############################
+
+# fit the regression line with x as the suicide and y as the happiness score  
+regline <- lm(happiness~gdp, data=data)
+# output the coefficients of the regression equation
+regline$coefficients
+summary(regline)
+
+# use the plot for category: continent = Africa as the base of the scatterplot 
+plot(data$gdp[data$Region == "Africa"], data$happiness[data$Region == "Africa"],
+     main = "GDP per Capita vs. Happiness Score by Country", 
+     xlab = "GDP per capita", ylab = "Happiness Score", pch = 15, col = "firebrick2",
+     xlim = c(0, 1.8), ylim = c(0,10))
+
+# add the scatter points by category: Region, differentiated by color and type 
+points(data$gdp[data$Region == "Asia"], data$happiness[data$Region == "Asia"],
+       pch = 16, col = "yellow")
+points(data$gdp[data$Region == "Europe"], data$happiness[data$Region == "Europe"],pch = 17, col = "yellowgreen")
+points(data$gdp[data$Region == "North America"], data$happiness[data$Region == "North America"],pch = 18, col = "purple")
+points(data$gdp[data$Region == "Oceania"], data$happiness[data$Region == "Oceania"],	pch = 7, col = "black")
+points(data$gdp[data$Region == "CIS"], data$happiness[data$Region == "CIS"],pch = 19, col = "deepskyblue1")
+points(data$gdp[data$Region == "Caribbean"], data$happiness[data$Region == "Caribbean"],pch = 11, col = "tan4")
+
+# add legend to the plot, adjust the size by cex =, used color map to pick the colors 
+#  that could help differentiate the data 
+legend("topright", c("Africa", "Asia", "Europe", "North America", "Oceania", "CIS", "Caribbean"), 
+       col = c("firebrick2", "yellow", "yellowgreen", "purple", "black", "deepskyblue1", "tan4"),
+       pch = c(15:18,7,19,11),cex = 0.7)
+
+# add linear regression line to the plot as required by item 3 
+abline(regline, col = "red", lty = 1, lwd = 1)
+text(0.3, 3, "Y = 3.877 * X + 4.033", cex = .8)
+
+################################# End of scatterplot gdp ######################
+
+### Check the distribution of life_expectancy  
+################ Scatterplot for life_expectancy vs happiness score by region  ###############################
+
+# fit the regression line with x as the suicide and y as the happiness score  
+regline <- lm(happiness~life_expectancy, data=data)
+# output the coefficients of the regression equation
+regline$coefficients
+summary(regline)
+
+# use the plot for category: continent = Africa as the base of the scatterplot 
+plot(data$life_expectancy[data$Region == "Africa"], data$happiness[data$Region == "Africa"],
+     main = "Life Expectancy vs. Happiness Score by Country", 
+     xlab = "Life Expenctancy", ylab = "Happiness Score", pch = 15, col = "firebrick2",
+     xlim = c(0, 1.2), ylim = c(0,10))
+
+# add the scatter points by category: Region, differentiated by color and type 
+points(data$life_expectancy[data$Region == "Asia"], data$happiness[data$Region == "Asia"],
+       pch = 16, col = "yellow")
+points(data$life_expectancy[data$Region == "Europe"], data$happiness[data$Region == "Europe"],pch = 17, col = "yellowgreen")
+points(data$life_expectancy[data$Region == "North America"], data$happiness[data$Region == "North America"],pch = 18, col = "purple")
+points(data$life_expectancy[data$Region == "Oceania"], data$happiness[data$Region == "Oceania"],	pch = 7, col = "black")
+points(data$life_expectancy[data$Region == "CIS"], data$happiness[data$Region == "CIS"],pch = 19, col = "deepskyblue1")
+points(data$life_expectancy[data$Region == "Caribbean"], data$happiness[data$Region == "Caribbean"],pch = 11, col = "tan4")
+
+# add legend to the plot, adjust the size by cex =, used color map to pick the colors 
+#  that could help differentiate the data 
+legend("topleft", c("Africa", "Asia", "Europe", "North America", "Oceania", "CIS", "Caribbean"), 
+       col = c("firebrick2", "yellow", "yellowgreen", "purple", "black", "deepskyblue1", "tan4"),
+       pch = c(15:18,7,19,11),cex = 0.7)
+
+# add linear regression line to the plot as required by item 3 
+abline(regline, col = "red", lty = 1, lwd = 1)
+text(0.2, 2, "Y =  4.185 * X + 2.5336", cex = .8)
+
+################################# End of scatterplot life_expectancy ######################
+
+
+###########           Conclusion            ######################################
+
+##### our final model 
+model.dropb<-lm(happiness ~ social + freedom + life_expectancy + Safety_co + 
+                        generosity + gdp + Tolerance_city + Safety_city + Cost_city + 
+                        Climate_co, data = data)
+summary(model.dropb)
+# Adjusted R-squared:  0.8489  p-value: < 2.2e-16
+
+model.drop<-lm(happiness ~  freedom + Safety_city + Tolerance_city + gdp  + social + 
+                       Cost_city + Climate_co + generosity + Safety_co, data = data)
+summary(model.drop)
+
+compareLM(model.dropb, model.drop)
+
+# drop Climate_co 
+# Adjusted R-squared:  0.8427 p-value: < 2.2e-16
+
+# drop Cost_city
+# Adjusted R-squared:  0.8413
+
+# drop Safety_city
+# Adjusted R-squared:  0.8386 
+
+# drop Tolerance_city
+# Adjusted R-squared:  0.824 
+
+# drop gdp
+# Adjusted R-squared:  0.8076  
+
+# drop generosity 
+# Adjusted R-squared:  0.8435
+
+# drop Safety_co
+# Adjusted R-squared:  0.8406 
+
+# drop life_expectancy
+# Adjusted R-squared:  0.8367
+
+# drop freedom 
+# Adjusted R-squared:  0.8138
+
+# drop social 
+# Adjusted R-squared:  0.8403
+
+
+####### Future steps 
+# 1 Explore Safety_co and Safety_city
+# Explore if I can combine Safety_co and Safety_city since both are significant 
+#   in building the model but a little bit correlated since they're the same 
+#   indicator for Safety scores of countries but just from two different dataset 
+datacopy <- data 
+
+# Scale the new column Safety
+datacopy$Cost <- (datacopy$Cost_city + datacopy$Costs_co)/2 # it can help 
+datacopy$Safety <- (datacopy$Safety_city + datacopy$Safety_co)/2 # it can help 
+
+summary(datacopy$Cost)
+
+########### Exam if the combination would influence the model 
+
+#the old model with both variables Safety_co and Safety_city 
+final<-lm(happiness ~ social + freedom + life_expectancy + Safety_co + 
+                 generosity + gdp + Tolerance_city + Safety_city + Cost_city + 
+                 Climate_co, data = datacopy)
+
+#the new model with only one variable Safety 
+new.final<-lm(happiness ~ social + freedom + life_expectancy +
+                   generosity + gdp + Tolerance_city + Safety + Cost + 
+                   Climate_co, data = datacopy)
+
+### model performance ###
+compareLM(final, new.final)
+#$Fit.criteria
+#Rank Df.res   AIC  AICc   BIC R.squared Adj.R.sq   p.value Shapiro.W Shapiro.p
+#1   11     78 86.88 90.98 116.7    0.8661   0.8489 6.289e-30    0.9896    0.7056
+#2   10     79 85.20 88.63 112.6    0.8656   0.8503 9.300e-31    0.9894    0.6951
